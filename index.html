@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+
+<head>
+	<meta charset='UTF-8'>
+	<title>小张的秘密</title>
+	<meta name='viewport' content='width=device-width initial-scale=1'>
+	<link
+		href='https://fonts.loli.net/css?family=PT+Serif:400,400italic,700,700italic&subset=latin,cyrillic-ext,cyrillic,latin-ext'
+		rel='stylesheet' type='text/css' />
+	<link href="style.css" rel="stylesheet" type="text/css"/>
+</head>
+
+<body class='typora-export'>
+	<div id='write' class='is-mac'>
+		<p><span>小张想送给未来的<i>小张</i>一句生日祝福</i></span></p>
+		<p><span>小张现在就会写下，但要等到<i>小张</i>生日当天再揭晓。那如何确保小张不会在中途更改，并且确保祝福是原本的样子?下面这个Demo你可以尝试一下：</span></p>
+		<h3><a name="第一步 - 加密" class="md-header-anchor"></a><span>第一步- 加密</span></h3>
+		<p>写下要加密的信息 (中英文都行) <input type="text" id="info" name="info"></p>
+		<p>点击确认按钮~ <button type="button" id="confirm" onclick="onEncrpytClick()">Encrypt</button></p>
+		<span id="encrypted"></span>
+
+		<div id="stepTwo" style="display: none;">
+			<h3><a name="第二步 - 解密" class="md-header-anchor"></a><span>第二步 (生日当天) - 解密</span></h3>
+			<p>那么到了解密的日子~如何解密小张的信息? Public+Private Key！作为Demo，可以把上面给出的Key复制进下面</p>
+			<p>Public Key: <input type="text" id="pk" name="pk"></p>
+			<p>Private Key (must be a number): <input type="text" id="sk" name="sk"></p>
+			<p><button type="button" id="decrpyt" onclick="onDecrpytClick()">Decrpyt (Click & Scroll Down)</button></p>
+			<span id="decrypted"></span>
+		</div>
+	</div>
+
+	<script>
+		const onEncrpytClick = () => {
+			let info = document.getElementById("info");
+			let encrypted = document.getElementById("encrypted");
+
+			encrypted.innerHTML = "加密中";
+			setTimeout(() => {
+				let rawText = info.value;
+				let intArray = [];
+				let sum = 0;
+				for (let i = 0; i < rawText.length; i++) {
+					let intVal = rawText.charCodeAt(i);
+					sum += intVal;
+					sum = sum % 10000;
+					intArray.push(intVal);
+				}
+				let encryptedString = "";
+				for (let i = 0; i < intArray.length; i++) {
+					encryptedString += String.fromCharCode(intArray[i] + sum);
+				}
+				encrypted.innerHTML = `
+					<b>你的输入:</b><br>${rawText}<br>
+					<b>Public Key:</b><br>${encryptedString}<br>
+					<b>Private Key (will be a number):</b><br>${sum}<br><br>
+					<div>出现了两个Key。其中 Public Key 立即可以公开，因为<i>小张</i>看不懂hhh 然后 Private Key 需要自己藏好。例如记在小本本上，或者放到微信收藏？</div>
+					<div>可以试一下，对于不同输入（即使差一个字）Public+Private Key都会变; 但是对于一个输入，都有固定的 Public+Private Key. 是一个 one-to-one injection. </div>
+					<p><button type="button" id="btnStepTwo" onclick="stepTwo()">Go to Step 2 (Click & Scroll Down)</button></p>
+				`;
+			}, 500);
+		};
+
+		const stepTwo = () => {
+			let stepTwo = document.getElementById("stepTwo");
+			stepTwo.style.display = "block";
+		};
+
+		const onDecrpytClick = () => {
+			let pk = document.getElementById("pk").value;
+			let sk = Number(document.getElementById("sk").value);
+			let decrypted = document.getElementById("decrypted");
+			decrypted.innerHTML = "解密中";
+			setTimeout(() => {
+				let decrpytedString = "";
+				let sum = 0;
+				for (let i = 0; i < pk.length; i++) {
+					let code = pk.charCodeAt(i) - sk;
+					sum += code;
+					sum = sum % 10000;
+					decrpytedString += String.fromCharCode(code);
+				}
+				if (sum == sk) {
+					decrypted.innerHTML = `
+					解密成功！答案是: ${decrpytedString}<br>
+					这就是想送给<i>小张</i>24岁的生日祝福，希望能亲口说出来 :) <br>
+					For the completeness of the demo, 可以试试再把 Private Key 改成别的数字？
+					`;
+				} else {
+					decrypted.innerHTML = `解密失败 - Public+Private Key 不匹配！<br>
+					好像不大来赛…网站仿佛察觉到了什么。说明小张不能在给出 Public Key 后，擅自更改 Private Key, 然后解密出不同的信息来，确保了完好一致。下面还有些Q&A——<br><br>
+
+
+					<b>是不是这个网站记住了我的信息？？</b><br>
+					刷新一下页面 信息都会没了~ 这些都是靠 Public+Private Key 实现。And this is the interesting part.（这么短时间也做不出能保存数据的网页 orz）<br><br>
+
+					<b>Public Key + Private Key 是怎么生成的?</b><br>
+					用各种密码学algorithm。我在 demo 用的是最简单的  类-Caesar Cipher<br>
+					在实际应用中，人们会用 MD5 等更”随机“一些的算法<br><br>
+
+					<b>如果知道 Public Key，以及生成 Key 的算法，可以反推原信息吗？</b><br>
+					理论上，还是有可能的？ 但是需要大量的运算资源 枚举 Private Key 的可能性，然后看哪个 Public+Private Key 组合配对成功。<br><br>
+					`;
+				}
+			}, 500);
+		};
+	</script>
+</body>
+
+</html>
